@@ -123,8 +123,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-CNN.py
 *.skeleton
 *.avi
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/vcs.xml
 GPU_Processes.py
 Test.py
+.idea/vcs.xml

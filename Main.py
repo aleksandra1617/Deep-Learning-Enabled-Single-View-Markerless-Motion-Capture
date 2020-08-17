@@ -236,7 +236,7 @@ def start_model_generation(loaded_in_data, loaded_out_data):
     POINT_DETECTOR_CNN = JointDetector.get_instance()
 
     # Load config files and configure the instances.
-    POINT_DETECTOR_CNN.configure(joint_data=50, frame_shape=VIDEO_RESOLUTION, batch_size=5, num_epochs=12)
+    POINT_DETECTOR_CNN.configure(joint_data=50, frame_shape=VIDEO_RESOLUTION, batch_size=2, num_epochs=12)
 
     # Split the data into train and test.
     slice_index = round(len(loaded_in_data) * 0.7)
@@ -256,7 +256,7 @@ def start_model_generation(loaded_in_data, loaded_out_data):
     print('#' * 50)
     for frame in output[0]:
         for i in range(0, len(frame), 2):
-            final_output.append(viewport_to_screen_space((frame[i], frame[i+1]), (1080, 1920)))
+            final_output.append(viewport_to_screen_space((frame[i], frame[i+1]), (1920, 1080)))
 
     render_video_with_joints(test["input"][0], final_output)
 
