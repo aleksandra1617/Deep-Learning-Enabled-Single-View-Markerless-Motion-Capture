@@ -221,4 +221,5 @@ def viewport_to_screen_space(percentage, image_boundaries):
         positions.append(int(round(percentage[i] * image_boundaries[i])))
 
     return tuple(positions)
+
 # endregion
