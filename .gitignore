@@ -123,3 +123,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+CNN.py
+*.skeleton
+*.avi
+GPU_Processes.py
+Test.py
