@@ -145,9 +145,7 @@ def load_dataset(input_file_extension, output_file_extension, dataset_name="", )
 def render_video_with_joints(input_videos, output_joints):
     for i in range(len(input_videos)):
         frame = input_videos[i]
-        frame_key_points = []
-        for point in output_joints:
-            frame_key_points.append((point[0] * 10, point[1] * 10))
+        frame_key_points = output_joints
 
         # Convert the percentage based locations to screen space positions.
         """for j in range(len(output_joints[i])):
@@ -209,7 +207,7 @@ def start_program():
     print("<<LOG>> Data Load Complete!")
 
     # Display a video with its skeleton data to check if it is all loaded correctly.
-    render_video_with_joints(input_videos, output_joints)
+    # render_video_with_joints(input_videos, output_joints)
 
     # Set the configuration for the learning model and trains it on the loaded data.
     start_model_generation(input_videos, output_joints)
@@ -238,7 +236,7 @@ def start_model_generation(loaded_in_data, loaded_out_data):
     POINT_DETECTOR_CNN = JointDetector.get_instance()
 
     # Load config files and configure the instances.
-    POINT_DETECTOR_CNN.configure(joint_data=50, frame_shape=VIDEO_RESOLUTION, batch_size=6, num_epochs=2)
+    POINT_DETECTOR_CNN.configure(joint_data=50, frame_shape=VIDEO_RESOLUTION, batch_size=5, num_epochs=12)
 
     # Split the data into train and test.
     slice_index = round(len(loaded_in_data) * 0.7)
@@ -252,7 +250,8 @@ def start_model_generation(loaded_in_data, loaded_out_data):
 
     # Generate the model
     POINT_DETECTOR_CNN.create_model(train, test)
-    output = JointDetector.get_instance().predict(test["input"][0])
+    print('<<LogTest>> Traning output: ', train['output'][0][0])
+    output = JointDetector.get_instance().predict(train["input"][0])
     final_output = []
     print('#' * 50)
     for frame in output[0]:
@@ -275,4 +274,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
