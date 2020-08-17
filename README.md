@@ -14,10 +14,10 @@ In the video games and film industries, the standard approach to animation is of
 ***30th June - 14th July:*** Sprint 2 (Further Research on Deep Learning for Computer Vision and CNN Configurations, Implement Key Point Detection, Update the Neural Network Configuration Based on Research to Improve Results)
 
 
-***15th July - 29th July:*** Sprint 3 (Update Literature Review, Depth map Generation from a Single Video, Using the Generated Depth Maps to Rise the Dimension from 2D to 3D)
+***15th July - 29th July:*** Sprint 3 (Improved Object Detection and Pose extraction through implementing the YOLO algorithm.)
 
 
-***30th July - 13th August:*** Sprint 4 (Implement Pre-Convolutional Video Processing to Take Load of the CNN)
+***30th July - 13th August:*** Sprint 4 (Update Literature Review, Depth map Generation from a Single Video, Using the Generated Depth Maps to Rise the Dimension from 2D to 3D)
 
 
 ***14th August - 28th August:*** Sprint 5 (3rd Party Evaluation, Complete Report and Prototype)
