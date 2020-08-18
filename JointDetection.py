@@ -76,25 +76,25 @@ class JointDetector:
             # model.add(Dense(100, activation='relu', kernel_initializer='he_uniform'))
             # model.add(Dense(50, activation='softmax'))
 
-            chanDim = 1
+            channel_dimension = 1  # TODO: Test with 3
 
             #convolution
             model = Sequential()
             model.add(Conv2D(32, (3, 3), padding="same", activation="relu", input_shape=self.CONFIG["FrameShape"]))
-            model.add(BatchNormalization(axis=chanDim))
-            model.add(MaxPooling2D(pool_size=(32, 32)))
+            model.add(BatchNormalization(axis=channel_dimension))
+            model.add(MaxPooling2D(pool_size=(8, 8)))
             # model.add(Dropout(0.25))
             #
             model.add(Conv2D(64, (3, 3), padding="same", activation="relu"))
-            model.add(BatchNormalization(axis=chanDim))
-            model.add(MaxPooling2D(pool_size=(16, 16)))
+            model.add(BatchNormalization(axis=channel_dimension))
+            model.add(MaxPooling2D(pool_size=(4, 4)))
             # model.add(Dropout(0.25))
-            #
+
             model.add(Conv2D(128, (3, 3), padding="same", activation="relu"))
-            # model.add(BatchNormalization(axis=chanDim))
-            #
-            model.add(Conv2D(256, (3, 3), padding="same", activation="relu"))
-            model.add(BatchNormalization(axis=chanDim))
+            # model.add(BatchNormalization(axis=channel_dimension))
+
+            model.add(Conv2D(128, (3, 3), padding="same", activation="relu"))
+            model.add(BatchNormalization(axis=channel_dimension))
             model.add(MaxPooling2D(pool_size=(2, 2)))
             #model.add(Dropout(0.25))
             model.add(Flatten())
@@ -114,11 +114,8 @@ class JointDetector:
     def create_model(self, train, test):
         model = JointDetector.get_instance().model
 
-
         # Define loss, optimizer, train and test the model
-        model.compile(optimizer='adadelta',
-              loss='mse',
-              metrics=['mae', 'mse'])
+        model.compile(optimizer='adadelta', loss='mse', metrics=['mae', 'mse'])
 
         model.fit(train["input"][0], train["output"][0], epochs=self.CONFIG["NumEpochs"], batch_size=self.CONFIG["BatchSize"])
         #JointDetector.get_instance().predict(test["input"][0])
@@ -127,11 +124,13 @@ class JointDetector:
 
     def predict(self, input_data):
         predicted_output = []
-        for image in input_data:
+        for i in range(len(input_data)):
+            img_array = asarray([input_data[i]])
+
             # Make a prediction
-            img_array = asarray([image])
             predicted_output.append(JointDetector.get_instance().model.predict(img_array))
-            print('Predicted Joint Positions: ', predicted_output[0])
+            print('\nPredicted Joint Positions for Video 0 Frame ', i, predicted_output[0])
+
         return predicted_output
 
     def object_tracking(self):

@@ -105,7 +105,7 @@ def load_skeleton_data(skeleton_file_path):
             expected_width = skeleton_screen_space[i] / skeleton_viewport[i]
             expected_height = skeleton_screen_space[i+1] / skeleton_viewport[i+1]
 
-            if (expected_width > 1922) or (expected_height > 1082):  # Allowed margin error 2.0
+            if (expected_width > 1924) or (expected_height > 1084):  # Allowed margin error 4.0
                 print("LOAD_SKELETON<<WARNING>> Inaccurate conversion from screen space to view port position!")
 
         start_index = end_index + offset
@@ -162,6 +162,7 @@ def render_video_with_joints(input_data, output_data):
             # Format the skeleton data so that it can be given to OpenCV for render.
             formatted_skeleton_joints = []
             for point_count in range(0, len(skeleton_joints), 2):
+
                 # Convert the percentage based locations to screen space positions.
                 key_point = viewport_to_screen_space((skeleton_joints[point_count],
                                                       skeleton_joints[point_count + 1]),
@@ -224,7 +225,7 @@ def start_program():
     print("<<LOG>> Data Load Complete!")
 
     # Display a video with its skeleton data to check if it is all loaded correctly.
-    render_video_with_joints(list(input_videos.values()), list(output_joints.values()))
+    # render_video_with_joints(list(input_videos.values()), list(output_joints.values()))
 
     # Set the configuration for the learning model and trains it on the loaded data.
     start_model_generation(input_videos, output_joints)
@@ -264,13 +265,17 @@ def start_model_generation(loaded_in_data, loaded_out_data):
     output_testing = list(loaded_out_data.values())[slice_index:]
 
     train, test = {"input": input_training, "output": output_training}, {"input": input_testing, "output": output_testing}
+    print('\n<<Log>> Skeleton Traning Data for Video 0, Frame 0: \n', test['output'][0][0], '\n')
 
     # Generate the model
     POINT_DETECTOR_CNN.create_model(train, test)
-    print('<<LogTest>> Traning output: ', train['output'][0][0])
-    output = JointDetector.get_instance().predict(train["input"][0])
+    output = JointDetector.get_instance().predict(test["input"][0])  # 30, 1, 50
 
-    render_video_with_joints(test["input"][0], output)
+    # Correcting the output shape so that OpenCV can render it.
+    for i in range(len(output)):
+        output[i] = output[i][0]
+
+    render_video_with_joints([test["input"][0]], [output])
 
 
 def extract_motion():
