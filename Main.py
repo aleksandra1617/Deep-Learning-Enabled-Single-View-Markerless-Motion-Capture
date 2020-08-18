@@ -254,7 +254,7 @@ def start_model_generation(loaded_in_data, loaded_out_data):
     POINT_DETECTOR_CNN = JointDetector.get_instance()
 
     # Load config files and configure the instances.
-    POINT_DETECTOR_CNN.configure(joint_data=50, frame_shape=VIDEO_RESOLUTION, batch_size=2, num_epochs=12)
+    POINT_DETECTOR_CNN.configure(joint_data=50, frame_shape=VIDEO_RESOLUTION, batch_size=2, num_epochs=2)
 
     # Split the data into train and test.
     slice_index = round(len(loaded_in_data) * 0.7)
@@ -269,13 +269,22 @@ def start_model_generation(loaded_in_data, loaded_out_data):
 
     # Generate the model
     POINT_DETECTOR_CNN.create_model(train, test)
-    output = JointDetector.get_instance().predict(test["input"][0])  # 30, 1, 50
+    output = JointDetector.get_instance().predict(test["input"][0])  # Output Shape -> (numFrames:30, 1, 50)
 
     # Correcting the output shape so that OpenCV can render it.
     for i in range(len(output)):
         output[i] = output[i][0]
 
     render_video_with_joints([test["input"][0]], [output])
+
+    #file_path = "E:\\Projects\\Active Projects\\Masters Project\\Masters Project Materials\\Video Dance Sequences\\V1S4.png"
+    #frame = load_frame(file_path)
+    #output = JointDetector.get_instance().predict(frame)
+    #render_video_with_joints([frame], [output])
+
+
+def load_frame(path):
+    return cv2.imread(path)
 
 
 def extract_motion():

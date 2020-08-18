@@ -67,15 +67,6 @@ class JointDetector:
             JointDetector.get_instance().CONFIG["BatchSize"] = batch_size
             JointDetector.get_instance().CONFIG["NumEpochs"] = num_epochs
 
-            # define model
-            # model = Sequential()
-            # model.add(Conv2D(32, (100, 100), activation='relu', kernel_initializer='he_uniform', input_shape=self.CONFIG["FrameShape"]))
-            # model.add(MaxPool2D((6, 6)))
-            # model.add(MaxPool2D((3, 3)))
-            # model.add(Flatten())
-            # model.add(Dense(100, activation='relu', kernel_initializer='he_uniform'))
-            # model.add(Dense(50, activation='softmax'))
-
             channel_dimension = 1  # TODO: Test with 3
 
             #convolution
@@ -104,7 +95,7 @@ class JointDetector:
             model.add(Activation("relu"))
             #model.add(BatchNormalization())
             #model.add(Dropout(0.5))
-            model.add(Dense(self.CONFIG["NumJoints"]))
+            model.add(Dense(self.CONFIG["NumJoints"],))
             model.add(Activation("sigmoid"))
             model.summary()
 
@@ -124,13 +115,13 @@ class JointDetector:
 
     def predict(self, input_data):
         predicted_output = []
-        for i in range(len(input_data)):
-            img_array = asarray([input_data[i]])
+        for image in input_data:
+
+            img_array = asarray([image])
 
             # Make a prediction
             predicted_output.append(JointDetector.get_instance().model.predict(img_array))
-            print('\nPredicted Joint Positions for Video 0 Frame ', i, predicted_output[0])
-
+            print('\nPredicted Joint Positions for Frame ', predicted_output[0])
         return predicted_output
 
     def object_tracking(self):
