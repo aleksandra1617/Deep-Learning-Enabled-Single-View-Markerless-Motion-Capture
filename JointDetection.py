@@ -102,12 +102,13 @@ class JointDetector:
             JointDetector.get_instance().model = model
     #endregion
 
-    def create_model(self, train, test):
+    def create_model(self, train):
         model = JointDetector.get_instance().model
 
         # Define loss, optimizer, train and test the model
         model.compile(optimizer='adadelta', loss='mse', metrics=['mae', 'mse'])
 
+        # TODO: Train on all the available videos.
         model.fit(train["input"][0], train["output"][0], epochs=self.CONFIG["NumEpochs"], batch_size=self.CONFIG["BatchSize"])
         #JointDetector.get_instance().predict(test["input"][0])
         #loss, acc = model.evaluate(test["input"][0], test["output"][0], verbose=0)
@@ -116,12 +117,11 @@ class JointDetector:
     def predict(self, input_data):
         predicted_output = []
         for image in input_data:
-
             img_array = asarray([image])
 
-            # Make a prediction
+            # Make a prediction and save it in the list.
             predicted_output.append(JointDetector.get_instance().model.predict(img_array))
-            print('\nPredicted Joint Positions for Frame ', predicted_output[0])
+
         return predicted_output
 
     def object_tracking(self):
@@ -138,23 +138,4 @@ class JointDetector:
 
         """
         pass
-
-
-if __name__ == "__main__":
-    k = JointDetector.get_instance()
-    k.CONFIG_DICT["NumJoints"], k.CONFIG_DICT["FrameShape"] = 25, (1920, 1080, 3)
-    k.CONFIG_DICT["BatchSize"], k.CONFIG_DICT["NumEpochs"] = 128, 10
-    print(help(k.configure))
-    k.configure()
-    k.create_model({"input": [], "output": []}, {"input": [], "output": []})
-    k.predict([])
-
-    #-----------------------------------------------------------------
-    # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-    #objp = np.zeros((6 * 7, 3), np.float32)
-    #objp[:, :2] = np.mgrid[0:7, 0:6].T.reshape(-1, 2)
-
-    # Arrays to store object points and image points from all the images.
-    #objpoints = []  # 3d point in real world space
-    #imgpoints = []  # 2d points in image plane.
 

@@ -39,17 +39,12 @@ def load_video_frames(video_file_path):
             VIDEO_RESOLUTION = frame.shape
 
             if captured:
-                # TODO: assert that the captured frame is not null/none
                 video_frames.append(frame)
 
         else:
             print("Frame ", count, " in Video << ", file_name, " >> has resolution << ", frame.shape,
                   " >> which does not match the VIDEO_RESOLUTION set at the start of data loading. "
                   "Please resize the frames to << ", VIDEO_RESOLUTION, " >>!")
-
-    #video_frames = np.asarray(video_frames)
-    #video_frames = np.reshape(video_frames, (30, 1080, 1920, 3))
-
 
     video_frames = np.asarray(video_frames)
     video_frames = video_frames.astype('float32')/255.0
@@ -150,95 +145,69 @@ def load_dataset(input_file_extension, output_file_extension, dataset_name="", )
     return video_frames, key_points, original_key_points
 
 
-def render_video_with_joints(input_data, output_data):
-    for video_count in range(len(input_data)):
-        video = input_data[video_count]
-        skeletons = output_data[video_count]
+def render_video_with_joints(video, skeletons):
+    for frame_count in range(len(video)):
+        frame = video[frame_count]
+        skeleton_joints = skeletons[frame_count]
 
-        for frame_count in range(len(video)):
-            frame = video[frame_count]
-            skeleton_joints = skeletons[frame_count]
+        # Format the skeleton data so that it can be given to OpenCV for render.
+        formatted_skeleton_joints = []
+        for point_count in range(0, len(skeleton_joints), 2):
 
-            # Format the skeleton data so that it can be given to OpenCV for render.
-            formatted_skeleton_joints = []
-            for point_count in range(0, len(skeleton_joints), 2):
+            # Convert the percentage based locations to screen space positions.
+            key_point = viewport_to_screen_space((skeleton_joints[point_count],
+                                                  skeleton_joints[point_count + 1]),
+                                                  (1920, 1080))
 
-                # Convert the percentage based locations to screen space positions.
-                key_point = viewport_to_screen_space((skeleton_joints[point_count],
-                                                      skeleton_joints[point_count + 1]),
-                                                      (1920, 1080))
+            formatted_skeleton_joints.append(key_point)
+            #formatted_skeleton_joints.append((skeleton_joints[point_count], skeleton_joints[point_count + 1]))
 
-                formatted_skeleton_joints.append(key_point)
-                #formatted_skeleton_joints.append((skeleton_joints[point_count], skeleton_joints[point_count + 1]))
+        if frame_count == 0 or frame_count == 29:  # frame_count == 14 or frame_count == 18 or
+            # Link the key points with lines TODO: build a json that will let me map instantly!
+            frame = cv2.line(frame, formatted_skeleton_joints[0], formatted_skeleton_joints[1], (232, 206, 0), 5)  # sBase->sMid
+            frame = cv2.line(frame, formatted_skeleton_joints[2], formatted_skeleton_joints[3], (232, 206, 0), 5)  # neck->head
 
-            if frame_count == 0 or frame_count == 29:  # frame_count == 14 or frame_count == 18 or
-                # Link the key points with lines TODO: build a json that will let me map instantly!
-                frame = cv2.line(frame, formatted_skeleton_joints[0], formatted_skeleton_joints[1], (232, 206, 0), 5)  # sBase->sMid
-                frame = cv2.line(frame, formatted_skeleton_joints[2], formatted_skeleton_joints[3], (232, 206, 0), 5)  # neck->head
+            frame = cv2.line(frame, formatted_skeleton_joints[4], formatted_skeleton_joints[5], (232, 206, 0), 5)  # lShoulder->lElbow
+            frame = cv2.line(frame, formatted_skeleton_joints[5], formatted_skeleton_joints[6], (232, 206, 0), 5)  # lElbow->lWrist
+            frame = cv2.line(frame, formatted_skeleton_joints[6], formatted_skeleton_joints[7], (232, 206, 0), 5)  # lWrist->lHand
 
-                frame = cv2.line(frame, formatted_skeleton_joints[4], formatted_skeleton_joints[5], (232, 206, 0), 5)  # lShoulder->lElbow
-                frame = cv2.line(frame, formatted_skeleton_joints[5], formatted_skeleton_joints[6], (232, 206, 0), 5)  # lElbow->lWrist
-                frame = cv2.line(frame, formatted_skeleton_joints[6], formatted_skeleton_joints[7], (232, 206, 0), 5)  # lWrist->lHand
+            frame = cv2.line(frame, formatted_skeleton_joints[8], formatted_skeleton_joints[9], (232, 206, 0), 5)  # rShoulder->rElbow
+            frame = cv2.line(frame, formatted_skeleton_joints[9], formatted_skeleton_joints[10], (232, 206, 0), 5)  # rElbow->rWrist
+            frame = cv2.line(frame, formatted_skeleton_joints[10], formatted_skeleton_joints[11], (232, 206, 0), 5)  # rWrist->rHand
 
-                frame = cv2.line(frame, formatted_skeleton_joints[8], formatted_skeleton_joints[9], (232, 206, 0), 5)  # rShoulder->rElbow
-                frame = cv2.line(frame, formatted_skeleton_joints[9], formatted_skeleton_joints[10], (232, 206, 0), 5)  # rElbow->rWrist
-                frame = cv2.line(frame, formatted_skeleton_joints[10], formatted_skeleton_joints[11], (232, 206, 0), 5)  # rWrist->rHand
+            frame = cv2.line(frame, formatted_skeleton_joints[12], formatted_skeleton_joints[13], (232, 206, 0), 5)  # lHip->lKnee
+            frame = cv2.line(frame, formatted_skeleton_joints[13], formatted_skeleton_joints[14], (232, 206, 0), 5)  # lKnee->lAnkle
+            frame = cv2.line(frame, formatted_skeleton_joints[14], formatted_skeleton_joints[15], (232, 206, 0), 5)  # lAnkle->lFoot
 
-                frame = cv2.line(frame, formatted_skeleton_joints[12], formatted_skeleton_joints[13], (232, 206, 0), 5)  # lHip->lKnee
-                frame = cv2.line(frame, formatted_skeleton_joints[13], formatted_skeleton_joints[14], (232, 206, 0), 5)  # lKnee->lAnkle
-                frame = cv2.line(frame, formatted_skeleton_joints[14], formatted_skeleton_joints[15], (232, 206, 0), 5)  # lAnkle->lFoot
+            frame = cv2.line(frame, formatted_skeleton_joints[16], formatted_skeleton_joints[17], (232, 206, 0), 5)  # rHip->rKnee
+            frame = cv2.line(frame, formatted_skeleton_joints[17], formatted_skeleton_joints[18], (232, 206, 0), 5)  # rKnee->rAnkle
+            frame = cv2.line(frame, formatted_skeleton_joints[18], formatted_skeleton_joints[19], (232, 206, 0), 5)  # rAnkle->rFoot
 
-                frame = cv2.line(frame, formatted_skeleton_joints[16], formatted_skeleton_joints[17], (232, 206, 0), 5)  # rHip->rKnee
-                frame = cv2.line(frame, formatted_skeleton_joints[17], formatted_skeleton_joints[18], (232, 206, 0), 5)  # rKnee->rAnkle
-                frame = cv2.line(frame, formatted_skeleton_joints[18], formatted_skeleton_joints[19], (232, 206, 0), 5)  # rAnkle->rFoot
+            frame = cv2.line(frame, formatted_skeleton_joints[20], formatted_skeleton_joints[4], (232, 206, 0), 5) # sShoulder->lShoulder
+            frame = cv2.line(frame, formatted_skeleton_joints[20], formatted_skeleton_joints[8], (232, 206, 0), 5)  # sShoulder->rShoulder
+            frame = cv2.line(frame, formatted_skeleton_joints[20], formatted_skeleton_joints[2], (232, 206, 0), 5) # sShoulder->neck
+            frame = cv2.line(frame, formatted_skeleton_joints[20], formatted_skeleton_joints[1], (232, 206, 0), 5)  # sShoulder->neck
 
-                frame = cv2.line(frame, formatted_skeleton_joints[20], formatted_skeleton_joints[4], (232, 206, 0), 5) # sShoulder->lShoulder
-                frame = cv2.line(frame, formatted_skeleton_joints[20], formatted_skeleton_joints[8], (232, 206, 0), 5)  # sShoulder->rShoulder
-                frame = cv2.line(frame, formatted_skeleton_joints[20], formatted_skeleton_joints[2], (232, 206, 0), 5) # sShoulder->neck
-                frame = cv2.line(frame, formatted_skeleton_joints[20], formatted_skeleton_joints[1], (232, 206, 0), 5)  # sShoulder->neck
+            frame = cv2.line(frame, formatted_skeleton_joints[0], formatted_skeleton_joints[12], (232, 206, 0), 5)  # sBase->rHip
+            frame = cv2.line(frame, formatted_skeleton_joints[0], formatted_skeleton_joints[16], (232, 206, 0), 5)  # sBase->rShoulder
 
-                frame = cv2.line(frame, formatted_skeleton_joints[0], formatted_skeleton_joints[12], (232, 206, 0), 5)  # sBase->rHip
-                frame = cv2.line(frame, formatted_skeleton_joints[0], formatted_skeleton_joints[16], (232, 206, 0), 5)  # sBase->rShoulder
+            frame = cv2.line(frame, formatted_skeleton_joints[7], formatted_skeleton_joints[22], (232, 206, 0), 5)  # lHand->lThumb
+            frame = cv2.line(frame, formatted_skeleton_joints[7], formatted_skeleton_joints[21], (232, 206, 0), 5)  # lHand->lhTip
 
-                frame = cv2.line(frame, formatted_skeleton_joints[7], formatted_skeleton_joints[22], (232, 206, 0), 5)  # lHand->lThumb
-                frame = cv2.line(frame, formatted_skeleton_joints[7], formatted_skeleton_joints[21], (232, 206, 0), 5)  # lHand->lhTip
+            frame = cv2.line(frame, formatted_skeleton_joints[11], formatted_skeleton_joints[24], (232, 206, 0), 5)  # rHand->rThumb
+            frame = cv2.line(frame, formatted_skeleton_joints[11], formatted_skeleton_joints[23], (232, 206, 0), 5)  # rHand->rhTip
 
-                frame = cv2.line(frame, formatted_skeleton_joints[11], formatted_skeleton_joints[24], (232, 206, 0), 5)  # rHand->rThumb
-                frame = cv2.line(frame, formatted_skeleton_joints[11], formatted_skeleton_joints[23], (232, 206, 0), 5)  # rHand->rhTip
+            # Map all the key points on top of the lines on the image
+            for j in range(len(formatted_skeleton_joints)-1):
+                current_key_point = formatted_skeleton_joints[j]
+                frame = cv2.circle(frame, current_key_point, 6, (0, 127, 255), -1)
 
-                # Map all the key points on top of the lines on the image
-                for j in range(len(formatted_skeleton_joints)-1):
-                    current_key_point = formatted_skeleton_joints[j]
-                    frame = cv2.circle(frame, current_key_point, 6, (0, 127, 255), -1)
-
-                cv2.imshow('Video'+str(video_count)+', Frame '+str(frame_count), frame)
-                cv2.waitKey(0)
-                cv2.destroyAllWindows()
+            cv2.imshow('Frame '+str(frame_count), frame)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
 
-def start_program():
-    """
-    On start program the load_dataset function is called to allow the user to select a path for the dataset.
-    :return:
-    """
-    input_videos, output_joints, original_output_joints = load_dataset(".avi", ".skeleton", "NTURGBD\\Sample")
-    print("<<LOG>> Data Load Complete!")
-
-    # Display a video with its skeleton data to check if it is all loaded correctly.
-    # render_video_with_joints(list(input_videos.values()), list(output_joints.values()))
-
-    # Set the configuration for the learning model and trains it on the loaded data.
-    start_model_generation(input_videos, output_joints)
-
-    """
-    for file_name in input_videos:
-        for i in range(len(input_videos[file_name])):
-            frame = input_videos[file_name][i]
-            frame_key_points = output_joints[file_name][i]
-            resolution = frame.shape"""
-
-
-def start_model_generation(loaded_in_data, loaded_out_data):
+def start_model_generation(train, test):
     """
     Instantiates a singleton for the JointDetector class which handles constructing a deep learning model
     for human 2D rig key point identification.
@@ -254,48 +223,99 @@ def start_model_generation(loaded_in_data, loaded_out_data):
     POINT_DETECTOR_CNN = JointDetector.get_instance()
 
     # Load config files and configure the instances.
-    POINT_DETECTOR_CNN.configure(joint_data=50, frame_shape=VIDEO_RESOLUTION, batch_size=2, num_epochs=2)
+    POINT_DETECTOR_CNN.configure(joint_data=50, frame_shape=VIDEO_RESOLUTION, batch_size=2, num_epochs=5)
 
-    # Split the data into train and test.
-    slice_index = round(len(loaded_in_data) * 0.7)
-
-    input_training = list(loaded_in_data.values())[:slice_index]
-    input_testing = list(loaded_in_data.values())[slice_index:]
-    output_training = list(loaded_out_data.values())[:slice_index]
-    output_testing = list(loaded_out_data.values())[slice_index:]
-
-    train, test = {"input": input_training, "output": output_training}, {"input": input_testing, "output": output_testing}
-    print('\n<<Log>> Skeleton Traning Data for Video 0, Frame 0: \n', test['output'][0][0], '\n')
+    #print('\n<<Log>> Skeleton Training Data for Video 0, Frame 0: \n', test['output'][0][0], '\n')
 
     # Generate the model
-    POINT_DETECTOR_CNN.create_model(train, test)
+    POINT_DETECTOR_CNN.create_model(train)
+
+    """ 
     output = JointDetector.get_instance().predict(test["input"][0])  # Output Shape -> (numFrames:30, 1, 50)
 
     # Correcting the output shape so that OpenCV can render it.
     for i in range(len(output)):
         output[i] = output[i][0]
 
-    render_video_with_joints([test["input"][0]], [output])
-
-    #file_path = "E:\\Projects\\Active Projects\\Masters Project\\Masters Project Materials\\Video Dance Sequences\\V1S4.png"
-    #frame = load_frame(file_path)
-    #output = JointDetector.get_instance().predict(frame)
-    #render_video_with_joints([frame], [output])
+    render_video_with_joints([test["input"][0]], [output])"""
 
 
-def load_frame(path):
-    return cv2.imread(path)
-
-
-def extract_motion():
+def extract_motion(test_input, test_output):
     # TODO: Resize the input video for prediction to the set Video Resolution.
-    # POINT_DETECTOR_CNN.predict(videos)
-    # TODO: Playback the video.
-    pass
+
+    predicted_output = []  # The predicted output for all test_input videos
+
+    for test_video in test_input:
+        # Predicts the joint positions per video, the output shape should be (numFrames:30, 1, 50)
+        predicted_video_output = JointDetector.get_instance().predict(test_video)
+        predicted_output.append(predicted_video_output)
+
+    # Correcting the output shape so that it can be rendered by OpenCV, after this the output shape should be (30, 50).
+    for i in range(len(predicted_output)):  # Get the list of skeletons
+        for j in range(len(predicted_output[i])):  # For each skeleton
+            predicted_output[i][j] = predicted_output[i][j][0]
+
+    # Compare the expected and the predicted output.
+    print("\n\n<<LOG>> Comparing Predicted and Expected Output..")
+    exact_match, partial_match, num_points = 0, 0, 0
+    for i in range(len(predicted_output)):
+        skeleton_group = predicted_output[i]
+
+        for j in range(len(skeleton_group)):
+            print("\n\n", '<'*20, "  Video ", i, "Frame ", j, "  ", '>'*20)
+            predicted_skeleton = predicted_output[i][j]
+            expected_skeleton = test_output[i][j]
+
+            for k in range(0, len(predicted_skeleton), 2):
+                predicted_x, predicted_y = predicted_skeleton[k], predicted_skeleton[k+1]
+                expected_x, expected_y = expected_skeleton[k], expected_skeleton[k+1]
+
+                num_points += 1
+                if (predicted_x != expected_x) and (predicted_y != expected_y):
+                    print("\nPredicted X: ", predicted_x, " Predicted Y: ", predicted_y)
+                    print("Expected X: ", expected_x, " Expected Y: ", expected_y)
+
+                elif (predicted_x == expected_x) and (predicted_y == expected_y):
+                    exact_match += 1
+                else:
+                    partial_match += 1
+
+    print("\n\n", '<'*20, "  Stats", "  ", '>'*20)
+    print(" \nExact Match = ", exact_match, "/", num_points)
+    print("Partial Match = ", partial_match, "/", num_points)
+    # What are the variance, deviation and standard deviation?
+
+    # TODO: Group all the frames of a video in a list.
+    for video_count in range(len(test_input)):
+        video = test_input[video_count]
+        skeletons = predicted_output[video_count]
+
+        # render_video_with_joints(video, skeletons)   # TODO: Playback the video.
 
 
 def main():
-    start_program()
+    input_videos, output_joints, original_output_joints = load_dataset(".avi", ".skeleton", "NTURGBD\\Sample")
+    print("<<LOG>> Data Load Complete!")
+
+    # Split the data into train and test.
+    slice_index = round(len(input_videos) * 0.7)
+
+    input_training = list(input_videos.values())[:slice_index]
+    input_testing = list(input_videos.values())[slice_index:]
+    output_training = list(output_joints.values())[:slice_index]
+    output_testing = list(output_joints.values())[slice_index:]
+
+    train, test = {"input": input_training, "output": output_training}, {"input": input_testing,
+                                                                         "output": output_testing}
+
+    # Display a video with its skeleton data to check if it is all loaded correctly.
+    # render_video_with_joints(list(input_videos.values()), list(output_joints.values()))
+
+    # Set the configuration for the learning model and trains it on the loaded data.
+    start_model_generation(train, test)
+
+    # Extract motion from unseen data.
+    extract_motion(test["input"], test["output"])
 
 
 if __name__ == "__main__":
