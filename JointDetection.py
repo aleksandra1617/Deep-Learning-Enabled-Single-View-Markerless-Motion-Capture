@@ -138,17 +138,3 @@ class JointDetector:
 
         """
         pass
-
-<<<<<<< HEAD
-=======
-
-if __name__ == "__main__":
-    k = JointDetector.get_instance()
-    k.CONFIG_DICT["NumJoints"], k.CONFIG_DICT["FrameShape"] = 25, (1920, 1080, 3)
-    k.CONFIG_DICT["BatchSize"], k.CONFIG_DICT["NumEpochs"] = 128, 10
-    print(help(k.configure))
-    k.configure()
-    k.create_model({"input": [], "output": []}, {"input": [], "output": []})
-    k.predict([])
-
->>>>>>> d4b54c6de6d48917f4fc45fa4ba9df0343d7c762
