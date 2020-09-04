@@ -246,7 +246,7 @@ def extract_motion(test_input, test_output):
     predicted_output = []  # The predicted output for all test_input videos
 
     for test_video in test_input:
-        # Predicts the joint positions per video, the output shape should be (numFrames:30, 1, 50)
+        # Predicts the joint positions per video, the output shape should be numFrames:30 x (1, 50) for each frame.
         predicted_video_output = JointDetector.get_instance().predict(test_video)
         predicted_output.append(predicted_video_output)
 
@@ -257,40 +257,44 @@ def extract_motion(test_input, test_output):
 
     # Compare the expected and the predicted output.
     print("\n\n<<LOG>> Comparing Predicted and Expected Output..")
-    exact_match, partial_match, num_points = 0, 0, 0
-    for i in range(len(predicted_output)):
+    exact_match, num_points, deviations = 0, 0, []
+    for i in range(len(predicted_output)):   # Get the skeleton group of a video
         skeleton_group = predicted_output[i]
 
-        for j in range(len(skeleton_group)):
+        for j in range(len(skeleton_group)):  # Get the skeleton of each frame
             print("\n\n", '<'*20, "  Video ", i, "Frame ", j, "  ", '>'*20)
             predicted_skeleton = predicted_output[i][j]
             expected_skeleton = test_output[i][j]
 
-            for k in range(0, len(predicted_skeleton), 2):
+            for k in range(0, len(predicted_skeleton), 2):  # Get the joint positions in each skeleton
                 predicted_x, predicted_y = predicted_skeleton[k], predicted_skeleton[k+1]
                 expected_x, expected_y = expected_skeleton[k], expected_skeleton[k+1]
 
                 num_points += 1
                 if (predicted_x != expected_x) and (predicted_y != expected_y):
+                    # Deviation Calculation
+                    x_deviation = predicted_x - expected_x
+                    y_deviation = predicted_y - expected_y
+                    deviations.append([x_deviation, y_deviation])
+
+                    # Display results
                     print("\nPredicted X: ", predicted_x, " Predicted Y: ", predicted_y)
-                    print("Expected X: ", expected_x, " Expected Y: ", expected_y)
+                    print("\nExpected X: ", expected_x, " Expected Y: ", expected_y)
+                    print("Deviation for X: ", expected_x, " Deviation for Y: ", expected_y)
 
                 elif (predicted_x == expected_x) and (predicted_y == expected_y):
                     exact_match += 1
-                else:
-                    partial_match += 1
 
     print("\n\n", '<'*20, "  Stats", "  ", '>'*20)
     print(" \nExact Match = ", exact_match, "/", num_points)
-    print("Partial Match = ", partial_match, "/", num_points)
-    # What are the variance, deviation and standard deviation?
+    #TODO Calculate the variance, deviation and standard deviation for the predicted and expected output.
 
     # TODO: Group all the frames of a video in a list.
     for video_count in range(len(test_input)):
         video = test_input[video_count]
         skeletons = predicted_output[video_count]
 
-        # render_video_with_joints(video, skeletons)   # TODO: Playback the video.
+        render_video_with_joints(video, skeletons)   # TODO: Create a playback for the video.
 
 
 def main():
@@ -308,8 +312,10 @@ def main():
     train, test = {"input": input_training, "output": output_training}, {"input": input_testing,
                                                                          "output": output_testing}
 
-    # Display a video with its skeleton data to check if it is all loaded correctly.
-    # render_video_with_joints(list(input_videos.values()), list(output_joints.values()))
+    """ # This code block visualises the first and last frame of all the loaded data to check it is valid. 
+    for i in range(len(list(input_videos.values()))):
+        # Display a video with its skeleton data to check if it is all loaded correctly.
+        render_video_with_joints(list(input_videos.values())[i], list(output_joints.values())[i])"""
 
     # Set the configuration for the learning model and trains it on the loaded data.
     start_model_generation(train, test)
