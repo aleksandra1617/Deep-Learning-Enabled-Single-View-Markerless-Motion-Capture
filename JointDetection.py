@@ -69,24 +69,65 @@ class JointDetector:
 
             channel_dimension = 1  # TODO: Test with 3
 
-            #convolution
             model = Sequential()
             model.add(Conv2D(32, (3, 3), padding="same", activation="relu", input_shape=self.CONFIG["FrameShape"]))
             model.add(BatchNormalization(axis=channel_dimension))
-            model.add(MaxPooling2D(pool_size=(8, 8)))
+            model.add(MaxPooling2D(pool_size=(16, 16)))
             model.add(Conv2D(64, (3, 3), padding="same", activation="relu"))
-            #model.add(BatchNormalization(axis=channel_dimension))
+            model.add(BatchNormalization(axis=channel_dimension))
             model.add(MaxPooling2D(pool_size=(4, 4)))
             model.add(Conv2D(128, (3, 3), padding="same", activation="relu"))
-            #model.add(BatchNormalization(axis=channel_dimension))
+            model.add(BatchNormalization(axis=channel_dimension))
             model.add(MaxPooling2D(pool_size=(2, 2)))
             model.add(Flatten())
-            model.add(Dense(100))  # 128
+            model.add(Dense(128))
+            model.add(Activation("sigmoid"))
+            model.add(Dense(128))
+            model.add(Activation("relu"))
+            model.add(Dense(64))
+            model.add(Activation("relu"))
+            model.add(Dense(64))
+            model.add(Activation("relu"))
+            model.add(Dense(50))
             model.add(Activation("relu"))
             # model.add(Dropout(0.25))
             model.add(Dense(self.CONFIG["NumJoints"],))
-            model.add(Activation("sigmoid"))
+            model.add(Activation("linear"))
             model.summary()
+            """
+
+            model = Sequential()
+            model.add(Conv2D(32, (3, 3), padding="same", activation="relu", input_shape=self.CONFIG["FrameShape"]))
+            # model.add(BatchNormalization(axis=chanDim))
+            model.add(MaxPooling2D(pool_size=(16, 16)))
+            # model.add(Dropout(0.25))
+            # #
+            # model.add(Conv2D(64, (3, 3), padding="same", activation="relu"))
+            # #model.add(BatchNormalization(axis=chanDim))
+            # model.add(MaxPooling2D(pool_size=(4, 4)))
+            # #model.add(Dropout(0.25))
+            # #
+            # model.add(Conv2D(128, (3, 3), padding="same", activation="relu"))
+            # #model.add(BatchNormalization(axis=chanDim))
+            # #
+            # model.add(Conv2D(128, (3, 3), padding="same", activation="relu"))
+            # #model.add(BatchNormalization(axis=chanDim))
+            # model.add(MaxPooling2D(pool_size=(4, 4)))
+            # model.add(Dropout(0.25))
+            model.add(Flatten())
+            model.add(Dense(128))
+            model.add(Activation("sigmoid"))
+            model.add(Dense(128))
+            model.add(Activation("relu"))
+            model.add(Dense(64))
+            model.add(Activation("relu"))
+            model.add(Dense(64))
+            model.add(Activation("relu"))
+            model.add(Dense(50))
+            model.add(Activation("relu"))
+            model.add(Dense(self.CONFIG["NumJoints"]))
+            # model.add(Activation("sigmoid"))
+            model.summary()"""
 
             JointDetector.get_instance().model = model
     #endregion
@@ -95,13 +136,10 @@ class JointDetector:
         model = JointDetector.get_instance().model
 
         # Define loss, optimizer, train and test the model
-        model.compile(optimizer='adadelta', loss='mse', metrics=['mae', 'mse'])
+        model.compile(optimizer='adam', loss='mse', metrics=['mae'])
 
         # TODO: Train on all the available videos.
         model.fit(train["input"][0], train["output"][0], epochs=self.CONFIG["NumEpochs"], batch_size=self.CONFIG["BatchSize"])
-        #JointDetector.get_instance().predict(test["input"][0])
-        #loss, acc = model.evaluate(test["input"][0], test["output"][0], verbose=0)
-        #print('Accuracy: %.3f' % acc)
 
     def predict(self, input_data):
         predicted_output = []
@@ -113,17 +151,9 @@ class JointDetector:
 
         return predicted_output
 
-    def object_tracking(self):
-        """
-        Improves the accuracy of motion extraction as it trains a network per joint instead of per person.
-
-        """
-        pass
-
     def object_detection(self):
         """
-        Used to add functionality to object tracking algorithms allowing them to track multiple objects at once.
-        In this case that would be multiple people.
+        Improves the accuracy of motion extraction as it trains a network per joint instead of per person.
 
         """
         pass
